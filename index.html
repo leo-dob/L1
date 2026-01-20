@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LEO.DOB | Дизайн и Брендинг</title>
+    <title>LEO.DOB | Визуальный Архитектор</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -13,47 +13,62 @@
         }
         body { 
           font-family: 'Plus Jakarta Sans', sans-serif; 
-          background-color: #ffffff;
-          color: #111;
+          background-color: #fcfcfc;
+          color: #1a1a1a;
           overflow-x: hidden; 
         }
         
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #f9f9f9; }
-        ::-webkit-scrollbar-thumb { background: #ddd; }
-        ::-webkit-scrollbar-thumb:hover { background: #111; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #fcfcfc; }
+        ::-webkit-scrollbar-thumb { background: #e5e5e5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
-        .tracking-tighter { letter-spacing: -0.05em; }
+        .tracking-tighter { letter-spacing: -0.06em; }
         
         @keyframes slide-up {
-          from { transform: translateY(50px); opacity: 0; }
+          from { transform: translateY(40px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
         }
+        
         .animate-slide-up {
-          animation: slide-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          opacity: 0;
+          animation: slide-up 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
         }
 
-        /* Мягкая текстура шума */
-        body::after {
-          content: "";
-          position: fixed;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_ext_noise_transparent.png");
-          opacity: 0.02;
-          pointer-events: none;
-          z-index: 9999;
+        .vertical-text {
+          writing-mode: vertical-rl;
         }
 
         section {
           opacity: 0;
           transform: translateY(30px);
-          transition: all 1s ease-out;
+          transition: all 1s cubic-bezier(0.23, 1, 0.32, 1);
         }
         section.visible {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 10px;
+        }
+        
+        /* Мягкий шум для глубины */
+        body::before {
+          content: "";
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+          opacity: 0.04;
+          pointer-events: none;
+          z-index: 1000;
         }
     </style>
 <script type="importmap">
@@ -67,7 +82,7 @@
 }
 </script>
 </head>
-<body class="bg-white">
+<body class="bg-[#fcfcfc]">
     <div id="root"></div>
     <script>
       const observer = new IntersectionObserver((entries) => {
@@ -76,7 +91,7 @@
             entry.target.classList.add('visible');
           }
         });
-      }, { threshold: 0.1 });
+      }, { threshold: 0.05 });
 
       window.addEventListener('load', () => {
         document.querySelectorAll('section').forEach(section => {

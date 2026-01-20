@@ -1,77 +1,71 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GoogleGenAI } from "@google/genai";
 
-// --- Константы и Данные ---
+// --- Constants & Data ---
 const BEHANCE_URL = "https://www.behance.net/Leo_dob";
+const HERO_IMAGE_URL = "https://raw.githubusercontent.com/leo-dob/L1/refs/heads/main/image/IMG-20260111-WA0028.jpg?token=GHSAT0AAAAAADS72ZCQEH7W3IOLWJ4JVXME2LFAITQ";
+const FOOTER_BG_IMAGE = "https://raw.githubusercontent.com/leo-dob/L1/refs/heads/main/image/IMG-20260111-WA0028.jpg";
 
 const SERVICES = [
   {
     id: "01",
-    title: "Брендинг и Логотипы",
-    description: "Разработка уникальной визуальной стратегии. От идеи логотипа до создания полноценного гайдбука, который выделит ваш бизнес.",
-    tags: ["Логотипы", "Айдентика", "Стратегия"]
+    title: "Brand Architecture",
+    description: "Разработка уникальной идентичности бренда. От концептуальных логотипов до комплексных систем визуального авторитета.",
   },
   {
     id: "02",
-    title: "Веб-дизайн и Digital",
-    description: "Создание адаптивных сайтов с акцентом на удобство пользователя (UX). Интерфейсы, которые превращают посетителей в клиентов.",
-    tags: ["Лэндинги", "Корпоративные сайты", "E-com"]
+    title: "Digital Experience",
+    description: "Проектирование интерфейсов, где эстетика встречается с психологией пользователя. Веб-дизайн и UX стратегии.",
   },
   {
     id: "03",
-    title: "Графический дизайн",
-    description: "Оформление упаковки, полиграфии и рекламных материалов. Визуальные коммуникации, которые говорят сами за себя.",
-    tags: ["Упаковка", "Полиграфия", "Реклама"]
+    title: "Ad Production",
+    description: "Высокоэффективные визуальные коммуникации. Упаковка и креативы, которые работают на результат.",
   }
 ];
 
 const PROJECTS = [
   { 
     id: 1, 
-    title: "Minimal Studio Identity", 
-    category: "Айдентика", 
-    img: "https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?auto=format&fit=crop&q=80&w=1200",
-    description: "Минималистичный фирменный стиль для креативного агентства.",
-    link: BEHANCE_URL
+    title: "Monochrome Studio", 
+    category: "Identity", 
+    img: "https://images.unsplash.com/photo-1634942537034-2531766767d1?auto=format&fit=crop&q=80&w=1200",
   },
   { 
     id: 2, 
-    title: "Eco-Friendly Brand", 
-    category: "Упаковка", 
-    img: "https://images.unsplash.com/photo-1605648916361-9bc12ad6a569?auto=format&fit=crop&q=80&w=1200",
-    description: "Разработка дизайна упаковки для натуральной косметики.",
-    link: BEHANCE_URL
+    title: "Eco Essence", 
+    category: "Packaging", 
+    img: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&q=80&w=1200",
   },
   { 
     id: 3, 
-    title: "Future Digital Interface", 
-    category: "Веб-разработка", 
-    img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200",
-    description: "Современная платформа для управления активами.",
-    link: BEHANCE_URL
+    title: "Fintech Interface", 
+    category: "UI/UX Design", 
+    img: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&q=80&w=1200",
   },
   { 
     id: 4, 
-    title: "Bold Typography Poster", 
-    category: "Графика", 
+    title: "Vanguard Poster", 
+    category: "Advertising", 
     img: "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=1200",
-    description: "Экспериментальная типографика для выставочного проекта.",
-    link: BEHANCE_URL
   }
 ];
-
-// --- Компоненты ---
 
 const AIChat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState<{role: string, text: string}[]>([]);
   const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat]);
 
   const handleAsk = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() || loading) return;
     const userMsg = message;
     setMessage("");
     setChat(prev => [...prev, { role: "user", text: userMsg }]);
@@ -81,14 +75,12 @@ const AIChat = () => {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: userMsg,
-        config: {
-          systemInstruction: "Вы — ассистент дизайнера LEO.DOB. Вы отвечаете вежливо, профессионально и вдохновляюще. Акцентируйте внимание на создании фирменного стиля, логотипов и современных сайтов. Портфолио находится на Behance (Leo_dob). Используйте слова: чистый дизайн, эстетика, функциональность.",
-        },
+        contents: `Вы — Leo Dob, профессиональный визуальный дизайнер. Отвечайте кратко и стильно. Пользователь спрашивает: ${userMsg}`,
       });
-      setChat(prev => [...prev, { role: "ai", text: response.text || "Извините, я задумался о новом концепте. Повторите ваш вопрос!" }]);
-    } catch (e) {
-      setChat(prev => [...prev, { role: "ai", text: "Произошла техническая заминка. Пожалуйста, попробуйте позже." }]);
+      const aiText = response.text || "Извините, я сейчас занят проектированием нового концепта.";
+      setChat(prev => [...prev, { role: "leo", text: aiText }]);
+    } catch (error) {
+      setChat(prev => [...prev, { role: "leo", text: "Произошла ошибка. Напишите мне в Telegram!" }]);
     } finally {
       setLoading(false);
     }
@@ -96,243 +88,187 @@ const AIChat = () => {
 
   return (
     <div className="fixed bottom-8 right-8 z-[100]">
-      {isOpen ? (
-        <div className="bg-white border border-neutral-200 w-[320px] md:w-[380px] h-[500px] flex flex-col rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-500">
-          <div className="p-5 border-b border-neutral-100 flex justify-between items-center bg-neutral-50">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-900">LEO.DOB AI</p>
-              <p className="text-[9px] text-neutral-400 uppercase">Ваш дизайн-консультант</p>
-            </div>
-            <button onClick={() => setIsOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-200 text-neutral-400 transition-all">✕</button>
+      {isOpen && (
+        <div className="absolute bottom-20 right-0 w-80 md:w-96 h-[500px] bg-white/90 backdrop-blur-2xl border border-black/5 shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-slide-up">
+          <div className="p-6 bg-black text-white flex justify-between items-center">
+            <h3 className="text-sm font-bold tracking-widest uppercase">Consult Leo AI</h3>
+            <button onClick={() => setIsOpen(false)} className="opacity-60 hover:opacity-100 transition-opacity">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-white">
-            <div className="bg-neutral-50 p-4 rounded-2xl text-[13px] text-neutral-700 leading-relaxed italic border border-neutral-100">
-              Привет! Я помогу вам узнать больше о моих услугах в области графического дизайна и брендинга. Что вас интересует?
-            </div>
-            {chat.map((c, i) => (
-              <div key={i} className={`text-[13px] p-4 rounded-2xl leading-relaxed ${c.role === 'user' ? 'bg-neutral-900 text-white ml-8 shadow-md' : 'bg-neutral-100 text-neutral-800 mr-8 border border-neutral-200'}`}>
-                {c.text}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+            {chat.map((msg, i) => (
+              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-neutral-100 text-neutral-800'}`}>
+                  {msg.text}
+                </div>
               </div>
             ))}
-            {loading && <div className="flex gap-1.5 p-2"><div className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce"></div><div className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce delay-75"></div><div className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce delay-150"></div></div>}
+            {loading && <div className="text-[10px] uppercase font-bold tracking-widest text-blue-500 animate-pulse">Processing...</div>}
+            <div ref={chatEndRef} />
           </div>
           <div className="p-4 bg-white border-t border-neutral-100 flex gap-2">
             <input 
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
-              placeholder="Спросить о проекте..."
-              className="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2 text-sm flex-1 outline-none focus:border-neutral-900 transition-all"
+              onKeyPress={(e) => e.key === 'Enter' && handleAsk()}
+              placeholder="Спросите о дизайне..."
+              className="flex-1 bg-neutral-100 border-none rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
             />
-            <button onClick={handleAsk} className="bg-neutral-900 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-neutral-800 transition-all text-white">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            <button onClick={handleAsk} className="bg-black text-white p-2 rounded-xl">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </button>
           </div>
         </div>
-      ) : (
-        <button 
-          onClick={() => setIsOpen(true)}
-          className="w-14 h-14 bg-neutral-900 rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all text-white"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        </button>
       )}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 transition-transform"
+      >
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+      </button>
     </div>
   );
 };
 
-const Navbar = () => (
-  <nav className="fixed top-0 w-full z-50 px-6 md:px-16 py-8 flex justify-between items-center bg-white/40 backdrop-blur-xl border-b border-white/10">
-    <div className="text-2xl font-black tracking-tighter text-neutral-900">LEO.DOB</div>
-    <div className="hidden md:flex gap-8 items-center text-[11px] uppercase tracking-widest font-bold text-neutral-500">
-      <a href="#work" className="hover:text-black transition-colors">Портфолио</a>
-      <a href="#services" className="hover:text-black transition-colors">Компетенции</a>
-      <a href="#contact" className="px-6 py-2.5 bg-neutral-900 text-white rounded-full hover:bg-neutral-700 transition-all shadow-lg shadow-neutral-900/10">Обсудить проект</a>
-    </div>
-  </nav>
-);
-
-const Hero = () => (
-  <section className="min-h-screen flex flex-col justify-center px-6 md:px-20 relative overflow-hidden bg-white">
-    {/* Стильный баннер на фоне */}
-    <div className="absolute top-0 right-0 w-full md:w-[60%] h-full -z-10 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
-      <img 
-        src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=2000" 
-        className="w-full h-full object-cover opacity-40 scale-110 animate-pulse duration-[10000ms]"
-        alt="Design Background"
-      />
-      <div className="absolute top-[20%] right-[10%] w-64 h-64 bg-indigo-100 rounded-full blur-[120px] opacity-60" />
-      <div className="absolute bottom-[10%] right-[30%] w-80 h-80 bg-neutral-200 rounded-full blur-[100px] opacity-40" />
-    </div>
-
-    <div className="max-w-7xl mx-auto w-full relative z-10">
-      <div className="mb-6 animate-slide-up">
-        <div className="inline-flex items-center gap-3">
-          <span className="w-12 h-[1px] bg-neutral-300"></span>
-          <span className="text-[10px] uppercase tracking-[0.4em] text-neutral-500 font-black">GRAPHIC & WEB SOLUTIONS</span>
+const PortfolioApp = () => {
+  return (
+    <div className="min-h-screen">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-[100] px-8 py-8 flex justify-between items-center transition-all duration-500">
+        <div className="text-xl font-extrabold tracking-tighter text-white drop-shadow-lg">LEO.DOB</div>
+        <div className="hidden md:flex gap-12 text-[10px] font-black uppercase tracking-[0.4em] text-white/70">
+          <a href="#services" className="hover:text-white transition-colors">Expertise</a>
+          <a href="#work" className="hover:text-white transition-colors">Portfolio</a>
+          <a href="#contact" className="hover:text-white transition-colors">Connect</a>
         </div>
-      </div>
-      
-      <h1 className="text-[14vw] md:text-[9vw] font-black leading-[0.85] tracking-tighter text-neutral-900 mb-10 animate-slide-up">
-        Эстетика <br /> 
-        <span className="text-neutral-300 transition-colors hover:text-neutral-900 cursor-default duration-500">через функцию.</span>
-      </h1>
-
-      <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-12 animate-slide-up" style={{animationDelay: '0.2s'}}>
-        <p className="max-w-lg text-lg md:text-2xl text-neutral-500 font-medium leading-tight">
-          Создаю фирменные стили, которые запоминаются, и интерфейсы, которые <span className="text-neutral-900 italic">работают на ваш бизнес.</span>
-        </p>
-        
-        {/* Нормальная кнопка портфолио с превью */}
-        <a href="#work" className="group relative flex items-center p-1 pr-8 bg-neutral-50 rounded-full border border-neutral-200 hover:border-neutral-900 transition-all duration-500">
-           <div className="w-14 h-14 rounded-full overflow-hidden mr-4">
-             <img src="https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&q=60&w=200" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-           </div>
-           <div className="flex flex-col">
-             <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-bold leading-none mb-1">Explore</span>
-             <span className="text-xs uppercase tracking-widest text-neutral-900 font-black leading-none">Портфолио →</span>
-           </div>
-        </a>
-      </div>
-    </div>
-
-    {/* Декоративный элемент в углу */}
-    <div className="absolute bottom-12 left-12 hidden md:block opacity-20">
-      <p className="text-[10px] font-mono rotate-90 origin-left tracking-widest">SCROLL TO DISCOVER — 2025</p>
-    </div>
-  </section>
-);
-
-const ServiceSection = () => (
-  <section id="services" className="py-32 px-6 md:px-20 bg-neutral-50">
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-8">
-        <div>
-          <h2 className="text-xs uppercase tracking-widest font-black text-neutral-400 mb-4">Направления работы</h2>
-          <p className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight">Как я помогаю <br/> вашему бренду.</p>
+        <div className="text-[10px] font-bold text-white bg-blue-600/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
+          DESIGNER FOR HIRE
         </div>
-        <p className="max-w-xs text-neutral-500 text-sm leading-relaxed">
-          Каждый проект — это глубокое погружение в смыслы и визуальный аудит вашего рынка.
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {SERVICES.map((s) => (
-          <div key={s.id} className="group p-10 bg-white border border-neutral-100 rounded-[2.5rem] hover:bg-neutral-900 transition-all duration-700 hover:-translate-y-2">
-            <span className="text-neutral-300 group-hover:text-neutral-700 font-black text-2xl mb-8 block transition-colors">{s.id}</span>
-            <h3 className="text-2xl font-bold mb-4 text-neutral-900 group-hover:text-white transition-colors">{s.title}</h3>
-            <p className="text-neutral-500 group-hover:text-neutral-400 text-sm leading-relaxed mb-10 transition-colors">{s.description}</p>
-            <div className="flex flex-wrap gap-2">
-              {s.tags.map(tag => (
-                <span key={tag} className="text-[9px] uppercase tracking-widest px-3 py-1.5 bg-neutral-50 group-hover:bg-white/10 border border-neutral-100 group-hover:border-white/10 text-neutral-400 group-hover:text-white rounded-full transition-all">{tag}</span>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center p-8 overflow-hidden visible">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={HERO_IMAGE_URL} 
+            alt="Leo Dob Background" 
+            className="w-full h-full object-cover scale-105 filter brightness-90"
+          />
+          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20"></div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-start animate-slide-up">
+          <div className="inline-flex items-center gap-3 mb-6">
+             <span className="w-10 h-[2px] bg-blue-500"></span>
+             <span className="text-blue-400 text-[10px] font-black uppercase tracking-[0.5em] drop-shadow-md">Senior Visual Architect</span>
+          </div>
+          <h1 className="text-white text-[12vw] md:text-[9vw] font-black leading-[0.8] tracking-tighter mb-8 drop-shadow-2xl">
+            PURE<br/>INTENT.
+          </h1>
+          <p className="text-white/80 max-w-lg text-lg md:text-xl leading-relaxed font-medium mb-10 drop-shadow-lg">
+            Я создаю визуальные системы, которые превращают хаос в порядок, а бизнес — в узнаваемый символ современности.
+          </p>
+          <div className="flex flex-wrap gap-6">
+              <a href={BEHANCE_URL} target="_blank" className="bg-white text-black px-10 py-5 rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-2xl">
+                Behance Portfolio
+              </a>
+              <a href="#work" className="bg-transparent border border-white/30 text-white backdrop-blur-md px-10 py-5 rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-white hover:text-black transition-all">
+                Selected Work
+              </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Expertise */}
+      <section id="services" className="bg-white py-40 px-8 md:px-20 relative z-20">
+        <div className="max-w-7xl mx-auto">
+            <h2 className="text-sm font-black tracking-[0.4em] uppercase text-blue-600 mb-12">Expertise</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+              {SERVICES.map((s) => (
+                <div key={s.id} className="group border-t border-neutral-100 pt-12">
+                  <span className="text-[10px] font-bold text-neutral-300 mb-6 block uppercase tracking-widest">{s.id}</span>
+                  <h3 className="text-3xl font-bold mb-6 tracking-tight text-neutral-950 group-hover:text-blue-600 transition-colors">{s.title}</h3>
+                  <p className="text-neutral-500 leading-relaxed font-medium">{s.description}</p>
+                </div>
               ))}
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
+        </div>
+      </section>
 
-const Portfolio = () => (
-  <section id="work" className="py-32 px-6 md:px-20 bg-white">
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-24 flex flex-col md:flex-row items-baseline gap-6">
-        <h2 className="text-6xl md:text-9xl font-black text-neutral-900 tracking-tighter">КЕЙСЫ</h2>
-        <div className="w-16 h-[2px] bg-neutral-200 hidden md:block"></div>
-        <p className="text-neutral-400 text-lg italic">Баланс формы и контента.</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-32">
-        {PROJECTS.map((project, i) => (
-          <a 
-            key={project.id} 
-            href={project.link} 
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block"
-          >
-            <div className="overflow-hidden rounded-[3rem] aspect-[4/5] bg-neutral-100 relative shadow-sm group-hover:shadow-3xl transition-all duration-700">
-              <img 
-                src={project.img} 
-                alt={project.title} 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s]"
-              />
-              <div className="absolute inset-0 bg-neutral-900/10 group-hover:bg-transparent transition-colors duration-500" />
-              <div className="absolute bottom-8 left-8 right-8 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                 <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl text-white">
-                   <p className="text-[10px] uppercase font-bold tracking-widest mb-1 opacity-70">Посмотреть проект</p>
-                   <p className="text-sm font-medium">Behance Case Study</p>
-                 </div>
+      {/* Featured Work */}
+      <section id="work" className="bg-[#f8f8f8] py-40 px-8 md:px-20 relative z-20">
+        <div className="max-w-7xl mx-auto">
+            <h2 className="text-7xl md:text-[10vw] font-black tracking-tighter text-neutral-950 mb-24 opacity-10">WORKS</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+              {PROJECTS.map((p, idx) => (
+                <div key={p.id} className={`group cursor-pointer ${idx % 2 !== 0 ? 'md:mt-40' : ''}`}>
+                  <div className="aspect-[4/5] overflow-hidden rounded-3xl bg-neutral-200 mb-8 shadow-xl group-hover:shadow-2xl transition-all duration-700">
+                    <img src={p.img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 block mb-2">{p.category}</span>
+                    <h4 className="text-3xl font-bold tracking-tight text-neutral-950">{p.title}</h4>
+                  </div>
+                </div>
+              ))}
+            </div>
+        </div>
+      </section>
+
+      {/* Contact Section / Footer with requested Background Image */}
+      <section id="contact" className="relative min-h-[80vh] flex items-center bg-black text-white py-40 px-8 md:px-20 relative z-20 overflow-hidden">
+        {/* Footer Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={FOOTER_BG_IMAGE} 
+            alt="Leo Dob Contact Background" 
+            className="w-full h-full object-cover opacity-60 filter brightness-50 contrast-125"
+          />
+          {/* Overlay Gradients */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+            <div>
+              <h2 className="text-6xl md:text-8xl font-black tracking-tighter mb-12 drop-shadow-2xl">
+                LET'S DESIGN<br/>THE FUTURE.
+              </h2>
+              <div className="space-y-6">
+                <a href="mailto:hello@leodob.design" className="block text-2xl font-bold text-white/60 hover:text-blue-500 transition-colors drop-shadow-md">hello@leodob.design</a>
+                <a href="https://t.me/leo_dob" className="block text-2xl font-bold text-white/60 hover:text-blue-500 transition-colors drop-shadow-md">@leo_dob</a>
               </div>
             </div>
-            <div className="mt-10 px-4">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 mb-2 block font-black">{project.category}</span>
-              <h4 className="text-3xl text-neutral-900 font-bold group-hover:underline decoration-neutral-200 underline-offset-8 transition-all">{project.title}</h4>
+            
+            {/* Functional VCard with blur effect */}
+            <div className="bg-white/5 backdrop-blur-xl p-12 rounded-3xl border border-white/10 shadow-2xl">
+              <div className="flex justify-between items-start mb-10">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2 uppercase tracking-tighter text-white">Leo Dob</h3>
+                  <p className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">Visual Architect</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center font-black text-xs text-white">LD</div>
+              </div>
+              <p className="text-neutral-300 mb-10 text-lg leading-relaxed">Специализируюсь на визуальном языке премиум брендов и высокотехнологичных интерфейсах. Работаю удаленно по всему миру.</p>
+              <div className="flex flex-col gap-4">
+                <a href={BEHANCE_URL} target="_blank" className="w-full bg-white text-black py-5 rounded-xl text-center font-bold text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-lg">View Full Behance Portfolio</a>
+                <div className="flex gap-4">
+                  <a href="https://t.me/leo_dob" target="_blank" className="flex-1 bg-white/10 border border-white/20 py-5 rounded-xl text-center font-bold text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all text-white">Telegram DM</a>
+                  <button onClick={() => window.print()} className="flex-1 bg-white/10 border border-white/20 py-5 rounded-xl text-center font-bold text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all text-white">Save Contact</button>
+                </div>
+              </div>
             </div>
-          </a>
-        ))}
-      </div>
-      
-      <div className="mt-32 text-center">
-        <a href={BEHANCE_URL} target="_blank" className="group relative inline-flex items-center px-12 py-5 overflow-hidden font-bold rounded-full border-2 border-neutral-900 hover:text-white transition-all duration-300">
-          <span className="absolute inset-0 w-full h-full bg-neutral-900 -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></span>
-          <span className="relative">БОЛЬШЕ РАБОТ НА BEHANCE</span>
-        </a>
-      </div>
-    </div>
-  </section>
-);
-
-const Footer = () => (
-  <footer id="contact" className="py-32 px-6 md:px-20 bg-neutral-900 text-white rounded-t-[4rem]">
-    <div className="max-w-7xl mx-auto text-center">
-      <span className="text-neutral-500 text-[10px] uppercase tracking-[0.5em] mb-8 block font-black animate-pulse">AVAILABLE FOR FREELANCE</span>
-      <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-20 leading-none">Готовы начать <br/> историю?</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-24">
-        <a href="https://t.me/Leo_dob" className="group p-10 border border-neutral-800 rounded-[2.5rem] hover:bg-white hover:text-neutral-900 transition-all duration-500">
-          <p className="text-[10px] uppercase tracking-widest mb-3 opacity-40 group-hover:opacity-100 transition-opacity">Telegram</p>
-          <p className="text-2xl font-bold tracking-tight">@Leo_dob</p>
-        </a>
-        <a href="mailto:hello@leo-dob.design" className="group p-10 border border-neutral-800 rounded-[2.5rem] hover:bg-white hover:text-neutral-900 transition-all duration-500">
-          <p className="text-[10px] uppercase tracking-widest mb-3 opacity-40 group-hover:opacity-100 transition-opacity">Email</p>
-          <p className="text-2xl font-bold tracking-tight">hello@leo.design</p>
-        </a>
-        <a href={BEHANCE_URL} className="group p-10 border border-neutral-800 rounded-[2.5rem] hover:bg-white hover:text-neutral-900 transition-all duration-500">
-          <p className="text-[10px] uppercase tracking-widest mb-3 opacity-40 group-hover:opacity-100 transition-opacity">Portfolio</p>
-          <p className="text-2xl font-bold tracking-tight">Behance</p>
-        </a>
-      </div>
-
-      <div className="pt-20 border-t border-neutral-800 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest text-neutral-500 font-bold">
-        <p>© 2025 LEO.DOB DESIGN. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</p>
-        <div className="flex gap-6">
-           <span className="hover:text-white transition-colors cursor-pointer">PRIVACY</span>
-           <span className="hover:text-white transition-colors cursor-pointer">TERMS</span>
+          </div>
         </div>
-        <p>СДЕЛАНО С ЭСТЕТИКОЙ В СЕРДЦЕ.</p>
-      </div>
-    </div>
-  </footer>
-);
+      </section>
 
-const App = () => {
-  return (
-    <main className="bg-white min-h-screen text-neutral-900 antialiased selection:bg-neutral-900 selection:text-white">
-      <Navbar />
-      <Hero />
-      <ServiceSection />
-      <Portfolio />
-      <Footer />
       <AIChat />
-    </main>
+    </div>
   );
 };
 
-const container = document.getElementById('root');
-if (container) {
-  const root = createRoot(container);
-  root.render(<App />);
-}
+const root = createRoot(document.getElementById('root')!);
+root.render(<PortfolioApp />);
